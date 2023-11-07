@@ -1,0 +1,84 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2112                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+FoamFile
+{
+    version         2;
+    format          ascii;
+    class           dictionary;
+    object          controlDict;
+}
+
+libs            ( "liboverset.so" "libfvMotionSolvers.so" );
+
+application     overPimpleDyMFoam;
+
+startFrom       startTime;
+
+startTime       0.58;
+
+stopAt          endTime;
+
+endTime         0.6;
+
+deltaT          1e-05;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.02;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  12;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.3;
+
+functions
+{
+    vortex1
+    {
+        type            vorticity;
+        libs            ( fieldFunctionObjects );
+        field           U;
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+    forces
+    {
+        type            forceCoeffs;
+        libs            ( forces );
+        writeControl    timeStep;
+        timeInterval    1;
+        log             yes;
+        patches         ( walls );
+        rho             rhoInf;
+        rhoInf          1;
+        liftDir         ( 0 1 0 );
+        dragDir         ( 1 0 0 );
+        CofR            ( 0 0 0 );
+        pitchAxis       ( 0 0 1 );
+        magUInf         1;
+        lRef            1;
+        Aref            0.1;
+    }
+}
+
+
+// ************************************************************************* //

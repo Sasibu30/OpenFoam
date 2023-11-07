@@ -1,0 +1,149 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//r0  -3; r1  -0.5;   r2  0.0; r3  0.5;    r4  3;
+x1 -0.5;
+x2 -4.5;
+x3 -5;
+x4 -5.5;
+x5 -9.5;
+y1 9.5;
+y2 5.5;
+y3 5;
+y4 4.5;
+y5 0.5;
+
+z0  0;  z1  0.1;
+narc    20;
+nrad    50;
+srad    15;
+nz      1;
+
+
+//arc mid-points
+ro11 -1.818019485;
+ro12 8.181980515;
+ro21 -8.181980515;
+ro22 8.181980515;
+ro31 -8.181980515;
+ro32 1.818019485;
+ro41 -1.818019485;
+ro42 1.818019485;
+
+ri11 -4.646446609;
+ri12 5.3535533906;
+ri21 -5.3535533906;
+ri22 5.3535533906;
+ri31 -5.3535533906;
+ri32 4.646446609;
+ri41 -4.646446609;
+ri42 4.646446609;
+
+
+
+scale 1;
+
+vertices
+(
+    ($x1 $y3 $z1)//0
+    ($x3 $y1 $z1)//1
+    ($x5 $y3 $z1)//2
+    ($x3 $y5 $z1)//3
+    //
+    ($x2 $y3 $z1)//4
+    ($x3 $y2 $z1)//5
+    ($x4 $y3 $z1)//6
+    ($x3 $y4 $z1)//7
+    ////
+    ($x1 $y3 $z0)//8
+    ($x3 $y1 $z0)//9
+    ($x5 $y3 $z0)//10
+    ($x3 $y5 $z0)//11
+    //
+    ($x2 $y3 $z0)//12
+    ($x3 $y2 $z0)//13
+    ($x4 $y3 $z0)//14
+    ($x3 $y4 $z0)//15
+
+);
+
+blocks
+(
+    hex ( 0  4  5  1  8 12 13  9) ($nrad $narc 1) simpleGrading ($srad 1 1) //Block 0 (+x/+y)
+    hex ( 1  5  6  2  9 13 14 10) ($nrad $narc 1) simpleGrading ($srad 1 1) //Block 1 (-x/+y)
+    hex ( 2  6  7  3 10 14 15 11) ($nrad $narc 1) simpleGrading ($srad 1 1) //Block 2 (-x/-y)
+    hex ( 3  7  4  0 11 15 12  8) ($nrad $narc 1) simpleGrading ($srad 1 1) //Block 3 (+x/-y)
+);
+
+edges
+(
+
+    // ouuter cylinder
+    arc 1 0 ($ro11 $ro12 $z1) arc 9 8 ($ro11 $ro12 $z0) //Block 0 (+x/+y)
+    arc 2 1 ($ro21 $ro22 $z1) arc 10 9 ($ro21 $ro22 $z0)//Block 1 (-x/+y)
+    arc 3 2 ($ro31 $ro32 $z1) arc 11 10 ($ro31 $ro32 $z0) //Block 2 (-x/-y)
+    arc 0 3 ($ro41 $ro42 $z1) arc 8 11 ($ro41 $ro42 $z0)//Block 3 (+x/-y)
+    ////
+    // inner overset
+    arc 4 5 ($ri11 $ri12 $z1) arc 12 13 ($ri11 $ri12 $z0)  //back: Block 0 (+x/+y)
+    arc 5 6 ($ri21 $ri22 $z1) arc 13 14 ($ri21 $ri22 $z0)  //back: Block 1 (-x/+y)
+    arc 6 7 ($ri31 $ri32 $z1) arc 14 15 ($ri31 $ri32 $z0)  //back: Block 2 (-x/-y)
+    arc 7 4 ($ri41 $ri42 $z1) arc 15 12 ($ri41 $ri42 $z0)  //back: Block 3 (+x/-y)
+
+);
+
+boundary
+(
+    overSetPatch
+    {
+        type overset;
+        faces
+        (
+          (0 1 8 9)
+          (1 2 9 10)
+          (2 3 10 11)
+          (3 0 11 8)
+        );
+    }
+    walls
+    {
+        type wall;
+        faces
+        (
+          (4 5 12 13)
+          (5 6 13 14)
+          (6 7 14 15)
+          (7 4 15 12)
+        );
+    }
+
+
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+            (0 4 5 1) (1 5 6 2) (2 6 7 3) (3 0 7 4)
+            (9 8 12 13) (9 13 10 14) (10 14 11 15) (11 15 8 12)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
