@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2306                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+solver          multiSolidBodyMotionSolver;
+dynamicFvMesh       dynamicOversetFvMesh;
+
+multiSolidBodyMotionSolverCoeffs // 사용하고자 모함수
+{
+    movingZone // 제어하고 싶은 영역의 이름
+    {
+     solidBodyMotionFunction oscillatingLinearMotion; // 사용하고자 자식함수
+     oscillatingLinearMotionCoeffs // 자식함수에서 사용되는 함수의 계수 값
+     {
+        amplitude ( 0 2 0); // 진폭
+        omega 3.14; // 주파수 [rad/s]
+     }
+
+
+    }
+}
+
+
+// ************************************************************************* //
