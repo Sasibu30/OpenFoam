@@ -1,0 +1,243 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  7
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Which of the steps to run
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+
+geometry
+{
+    ahmed_25deg_m.stl
+    {
+        type triSurfaceMesh;
+        name ahmed_body;
+    }
+
+    refinementBox_1
+    {
+        type searchableBox;
+        min (-1.0 -0.7 0.0);
+        max ( 8.0  0.7 2.5);
+    }
+
+    refinementBox_2
+    {
+        type searchableBox;
+        min (-0.7 -0.6 0.0);
+        max ( 4.0  0.6 1.5);
+    }
+
+    refinementBox_3
+    {
+        type searchableBox;
+        min (-0.5 -0.5 0.0);
+        max ( 2.0  0.5 0.8);
+    }
+};
+
+
+
+// Settings for the castellatedMesh generation.
+castellatedMeshControls
+{
+
+    // Refinement parameters
+    maxLocalCells 5000000;
+    maxGlobalCells 30000000;
+    minRefinementCells 10;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 3;
+
+    // Explicit feature edge refinement
+    features
+    (
+      {
+            file "ahmed_25deg_m.eMesh";
+            level 8;
+        }
+    );
+
+	// Surface based refinement
+    refinementSurfaces
+    {
+        ahmed_body
+        {
+            level (7 8);
+            patchInfo
+            {
+                type wall;
+                inGroups (ahmed_bodyGroup);
+            }
+        }
+    }
+
+	// Region-wise refinement
+    refinementRegions
+    {
+		ahmed_body
+		{
+			mode distance;
+			levels ((0.025 8) (0.1 7));
+		}
+
+        refinementBox_1
+        {
+            mode inside;
+            levels ((1E15 5));
+        }
+
+        refinementBox_2
+        {
+            mode inside;
+            levels ((1E15 6));
+        }
+
+        refinementBox_3
+        {
+            mode inside;
+            levels ((1E15 7));
+        }
+    }
+
+    resolveFeatureAngle 30;
+    locationInMesh (3.0001 3.0001 0.43);
+    allowFreeStandingZoneFaces true;
+}
+
+
+
+// Settings for the snapping.
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 2.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap false;
+}
+
+
+// Settings for the layer addition.
+addLayersControls
+{
+    layers
+    {
+        lowerWall
+        {
+            nSurfaceLayers 5;
+        }
+
+        ahmed_body
+        {
+            nSurfaceLayers 10;
+        }
+    }
+
+    relativeSizes true;
+    expansionRatio 1.0;
+    firstLayerThickness 0.05;
+    minThickness 0.05;
+    nGrow 0;
+    featureAngle 60;
+    slipFeatureAngle 30;
+    nRelaxIter 3;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals 3;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
+}
+
+// Generic mesh quality settings. At any undoable phase these determine
+// where to undo.
+meshQualityControls
+{
+    //- Maximum non-orthogonality allowed. Set to 180 to disable.
+    maxNonOrtho 65;
+
+    //- Max skewness allowed. Set to <0 to disable.
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+
+    //- Max concaveness allowed. Is angle (in degrees) below which concavity
+    //  is allowed. 0 is straight face, <0 would be convex face.
+    //  Set to 180 to disable.
+    maxConcave 80;
+
+    //- Minimum projected area v.s. actual area. Set to -1 to disable.
+    minFlatness 0.5;
+
+    //- Minimum pyramid volume. Is absolute volume of cell pyramid.
+    //  Set to a sensible fraction of the smallest cell volume expected.
+    //  Set to very negative number (e.g. -1E30) to disable.
+    minVol 1e-13;
+    minTetQuality 1e-30;
+
+    //- Minimum face area. Set to <0 to disable.
+    minArea -1;
+
+    //- Minimum face twist. Set to <-1 to disable. dot product of face normal
+    //  and face centre triangles normal
+    minTwist 0.02;
+
+    //- Minimum normalised cell determinant
+    //  1 = hex, <= 0 = folded or flattened illegal cell
+    minDeterminant 0.001;
+
+    //- minFaceWeight (0 -> 0.5)
+    minFaceWeight 0.02;
+
+    //- minVolRatio (0 -> 1)
+    minVolRatio 0.01;
+
+    // must be >0 for Fluent compatibility
+    minTriangleTwist -1;
+
+
+    // Advanced
+
+    //- Number of error distribution iterations
+    nSmoothScale 4;
+    //- Amount to scale back displacement at error points
+    errorReduction 0.75;
+}
+
+
+// Advanced
+
+// Write flags
+writeFlags
+(
+    scalarLevels
+    layerSets
+    layerFields     // write volScalarField for layer coverage
+);
+
+
+// Merge tolerance. Is fraction of overall bounding box of initial mesh.
+// Note: the write tolerance needs to be higher than this.
+mergeTolerance 1e-6;
+
+
+// ************************************************************************* //

@@ -1,0 +1,21 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# mesh
+cp -r 0.orig 0
+runApplication surfaceFeatureExtract
+runApplication blockMesh
+runApplication decomposePar -copyZero
+runParallel snappyHexMesh -overwrite
+#
+# # solve
+runParallel simpleFoam
+#
+# # munge
+# runApplication reconstructParMesh -constant
+# runApplication reconstructPar -latestTime
+
+#------------------------------------------------------------------------------
